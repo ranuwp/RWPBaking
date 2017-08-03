@@ -56,6 +56,7 @@ public class MenuListFragment extends Fragment implements MenuListAdapter.OnItem
             menuListAdapter = new MenuListAdapter(getContext(), recipe, this);
             menuListAdapter.setSelectedPosition(selectedPosition);
             fragmentMenuListBinding.menuListRecyclerview.setAdapter(menuListAdapter);
+            fragmentMenuListBinding.menuListRecyclerview.smoothScrollToPosition(selectedPosition==-1?0:selectedPosition);
         }
         return fragmentMenuListBinding.getRoot();
     }
@@ -77,5 +78,15 @@ public class MenuListFragment extends Fragment implements MenuListAdapter.OnItem
     public void onItemClick(Step step) {
         if(onMenuListClickListener == null) return;
         onMenuListClickListener.onClick(step);
+    }
+
+    public void setSelectedItem(Step step){
+        if(step != null){
+            selectedPosition = recipe.getSteps().indexOf(step);
+        }else{
+            selectedPosition = -1;
+        }
+        menuListAdapter.setSelectedPosition(selectedPosition);
+        menuListAdapter.notifyDataSetChanged();
     }
 }
