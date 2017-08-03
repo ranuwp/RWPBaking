@@ -113,25 +113,6 @@ public class StepDetailFragment extends Fragment implements View.OnClickListener
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if(savedInstanceState != null){
-            step = savedInstanceState.getParcelable(Step.class.getName());
-            if(getResources().getBoolean(R.bool.multiPane)){
-                setStep(step,true);
-            }else{
-                setStep(step,false);
-            }
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelable(Step.class.getName(), step);
-    }
-
-    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         onClickListener = (OnClickListener) context;

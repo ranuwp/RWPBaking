@@ -37,10 +37,22 @@ public class SelectRecipeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         selectRecipeBinding = DataBindingUtil.setContentView(this, R.layout.select_recipe);
         recipes = new ArrayList<>();
+        if(savedInstanceState != null){
+            ArrayList<Recipe> temp = savedInstanceState.getParcelableArrayList(Recipe.class.getName());
+            recipes.addAll(temp);
+        }
         selectRecipeAdapter = new SelectRecipeAdapter(this,recipes);
         selectRecipeBinding.recipeRecyclerview.setAdapter(selectRecipeAdapter);
         requestQueue = Volley.newRequestQueue(this);
-        recipeRequest();
+        if(recipes.size() == 0){
+            recipeRequest();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(Recipe.class.getName(),recipes);
     }
 
     private void recipeRequest(){

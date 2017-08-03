@@ -37,99 +37,44 @@ public class SelectRecipeDetailActivity extends AppCompatActivity implements Men
         fragmentManager = getSupportFragmentManager();
         recipe = getIntent().getParcelableExtra(RECIPE_ID);
         getSupportActionBar().setTitle(recipe.getName());
-        if(savedInstanceState == null){
-            if(getResources().getBoolean(R.bool.multiPane)){
-                MenuListFragment menuListFragment = new MenuListFragment();
+        if (savedInstanceState == null) {
+            MenuListFragment menuListFragment = new MenuListFragment();
+            if(!menuListFragment.isInLayout()){
                 menuListFragment.setRecipe(recipe);
                 menuListFragment.setOnMenuListClickListener(this);
                 fragmentManager.beginTransaction()
-                        .replace(R.id.menu_list,menuListFragment,Recipe.class.getName())
-                        .commit();
-            }else{
-                MenuListFragment menuListFragment = new MenuListFragment();
-                menuListFragment.setRecipe(recipe);
-                fragmentManager.beginTransaction()
-                        .replace(R.id.menu_list,menuListFragment,Recipe.class.getName())
+                        .replace(R.id.menu_list, menuListFragment, Recipe.class.getName())
                         .commit();
             }
-        }else{
+        } else {
             currentStep = savedInstanceState.getParcelable(Step.class.getName());
-            if(fragmentManager.getBackStackEntryCount() > 0){
-                fragmentManager.popBackStack();
-            }
-            if(getResources().getBoolean(R.bool.multiPane)){
-                MenuListFragment menuListFragment = new MenuListFragment();
-                menuListFragment.setRecipe(recipe);
-                menuListFragment.setOnMenuListClickListener(this);
-                fragmentManager.beginTransaction()
-                        .replace(R.id.menu_list,menuListFragment,Recipe.class.getName())
-                        .commit();
-                int val =fragmentManager.getBackStackEntryCount();
-                Log.d("RWP",String.valueOf(val));
-                if(currentStep != null){
+            if(currentStep != null){
+                if(getResources().getBoolean(R.bool.multiPane)){
+                    fragmentManager.popBackStack();
                     StepDetailFragment stepDetailFragment = new StepDetailFragment();
-                    stepDetailFragment.setStep(currentStep,true);
+                    stepDetailFragment.setStep(currentStep, true);
                     stepDetailFragment.setOnClickListener(this);
                     fragmentManager.beginTransaction()
-                            .replace(R.id.detail_step,stepDetailFragment,Step.class.getName())
+                            .replace(R.id.detail_step, stepDetailFragment, Step.class.getName())
+                            .commit();
+                }else{
+                    StepDetailFragment stepDetailFragment = new StepDetailFragment();
+                    stepDetailFragment.setStep(currentStep, isLastStep(currentStep));
+                    stepDetailFragment.setOnClickListener(this);
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.menu_list, stepDetailFragment, Step.class.getName())
+                            .addToBackStack(null)
                             .commit();
                 }
             }else{
-                MenuListFragment menuListFragment = new MenuListFragment();
-                menuListFragment.setRecipe(recipe);
-                fragmentManager.beginTransaction()
-                        .replace(R.id.menu_list,menuListFragment,Recipe.class.getName())
-                        .commit();
-                if(currentStep != null){
-                    StepDetailFragment stepDetailFragment = new StepDetailFragment();
-                    stepDetailFragment.setStep(currentStep,isLastStep(currentStep));
-                    stepDetailFragment.setOnClickListener(this);
+                StepDetailFragment stepDetailFragment = (StepDetailFragment) fragmentManager.findFragmentByTag(Step.class.getName());
+                if(stepDetailFragment != null){
                     fragmentManager.beginTransaction()
-                            .replace(R.id.menu_list,stepDetailFragment,Step.class.getName())
-                            .addToBackStack(null)
+                            .remove(stepDetailFragment)
                             .commit();
                 }
             }
         }
-//        if (savedInstanceState != null) {
-//            currentStep = savedInstanceState.getParcelable(Step.class.getName());
-//        } else {
-//            MenuListFragment menuListFragment = new MenuListFragment();
-//            menuListFragment.setOnMenuListClickListener(this);
-//            menuListFragment.setRecipe(recipe);
-//            getSupportFragmentManager().beginTransaction()
-//                    .replace(R.id.menu_list, menuListFragment, MenuListFragment.class.getName())
-//                    .commit();
-//        }
-//        if (selectRecipeDetailBinding.detailStep != null) {
-//            twoPane = true;
-//            if (currentStep == null) {
-//                currentStep = recipe.getSteps().get(0);
-//            }
-//            MenuListFragment menuListFragment = new MenuListFragment();
-//            menuListFragment.setOnMenuListClickListener(this);
-//            menuListFragment.setRecipe(recipe);
-//            getSupportFragmentManager().beginTransaction()
-//                    .replace(R.id.menu_list, menuListFragment, MenuListFragment.class.getName())
-//                    .commit();
-//            StepDetailFragment stepDetailFragment = new StepDetailFragment();
-//            stepDetailFragment.setStep(currentStep, true);
-//            getSupportFragmentManager().beginTransaction().
-//                    replace(R.id.detail_step, stepDetailFragment, StepDetailFragment.class.getName())
-//                    .commit();
-//        } else if (currentStep != null) {
-//            twoPane = false;
-//            StepDetailFragment stepDetailFragment = new StepDetailFragment();
-//            boolean isLast = recipe.getSteps().get(recipe.getSteps().size() - 1).equals(currentStep);
-//            stepDetailFragment.setStep(currentStep, isLast);
-//            stepDetailFragment.setOnClickListener(this);
-//            getSupportFragmentManager().beginTransaction()
-//                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-//                    .replace(R.id.menu_list, stepDetailFragment, StepDetailFragment.class.getName())
-//                    .addToBackStack(null)
-//                    .commit();
-//        }
-//        Log.d("RWP", recipe.getName());
     }
 
     public static void toActivity(Context context, Recipe recipe) {
@@ -141,27 +86,40 @@ public class SelectRecipeDetailActivity extends AppCompatActivity implements Men
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(Recipe.class.getName(),recipe);
-        outState.putParcelable(Step.class.getName(),currentStep);
+        outState.putParcelable(Recipe.class.getName(), recipe);
+        outState.putParcelable(Step.class.getName(), currentStep);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if (fragmentManager.getBackStackEntryCount() == 0) {
+            currentStep = null;
+            MenuListFragment menuListFragment = (MenuListFragment) fragmentManager.findFragmentByTag(Recipe.class.getName());
+            menuListFragment.setSelectedItem(currentStep);
+        }
     }
 
     @Override
     public void onClick(Step step) {
         currentStep = step;
+        if(fragmentManager.getBackStackEntryCount()>=0){
+            fragmentManager.popBackStack();
+        }
         if (getResources().getBoolean(R.bool.multiPane)) {
             StepDetailFragment stepDetailFragment = new StepDetailFragment();
-            stepDetailFragment.setStep(step,true);
+            stepDetailFragment.setStep(step, true);
             fragmentManager.beginTransaction()
-                    .replace(R.id.detail_step,stepDetailFragment,Step.class.getName())
+                    .replace(R.id.detail_step, stepDetailFragment, Step.class.getName())
                     .commit();
         } else {
             StepDetailFragment stepDetailFragment = new StepDetailFragment();
             stepDetailFragment.setOnClickListener(this);
-            boolean isLast = recipe.getSteps().get(recipe.getSteps().size() - 1).equals(currentStep);
-            stepDetailFragment.setStep(step,isLast);
+            boolean isLast = isLastStep(currentStep);
+            stepDetailFragment.setStep(step, isLast);
             getSupportFragmentManager().beginTransaction()
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                    .replace(R.id.menu_list, stepDetailFragment,Step.class.getName())
+                    .replace(R.id.menu_list, stepDetailFragment, Step.class.getName())
                     .addToBackStack(null)
                     .commit();
 
@@ -170,25 +128,25 @@ public class SelectRecipeDetailActivity extends AppCompatActivity implements Men
 
     @Override
     public void onNextButtonClick(Step step) {
-        currentStep = step;
+        fragmentManager.popBackStack();
         StepDetailFragment stepDetailFragment = new StepDetailFragment();
-        boolean isLast = isLastStep(currentStep);
-        Step nextStep = getNextStep(currentStep);
+        Step nextStep = getNextStep(step);
+        boolean isLast = isLastStep(nextStep);
+        currentStep = nextStep;
         stepDetailFragment.setStep(nextStep, isLast);
         stepDetailFragment.setOnClickListener(this);
-        fragmentManager.popBackStack();
         fragmentManager.beginTransaction()
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .replace(R.id.menu_list, stepDetailFragment,Step.class.getName())
+                .replace(R.id.menu_list, stepDetailFragment, Step.class.getName())
                 .addToBackStack(null)
                 .commit();
     }
 
-    private boolean isLastStep(Step step){
-        return recipe.getSteps().get(recipe.getSteps().size() - 1).equals(currentStep);
+    private boolean isLastStep(Step step) {
+        return recipe.getSteps().get(recipe.getSteps().size() - 1).equals(step);
     }
 
-    private Step getNextStep(Step step){
-        return recipe.getSteps().get(recipe.getSteps().indexOf(currentStep) + 1);
+    private Step getNextStep(Step step) {
+        return recipe.getSteps().get(recipe.getSteps().indexOf(step) + 1);
     }
 }
