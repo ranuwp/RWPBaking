@@ -42,6 +42,14 @@ public class Recipe implements Parcelable {
         }
         servings = jsonObject.getInt("servings");
         image = jsonObject.getString("image");
+        if(image.equals("")){
+            Step lastStep = this.steps.get(this.steps.size() - 1);
+            if (!lastStep.getVideoURL().equals("")) {
+                image = lastStep.getVideoURL();
+            } else {
+                image = lastStep.getThumbnailURL();
+            }
+        }
     }
 
     public int getId() {

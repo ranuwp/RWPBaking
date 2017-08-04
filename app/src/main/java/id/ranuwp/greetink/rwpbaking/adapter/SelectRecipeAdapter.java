@@ -49,20 +49,14 @@ public class SelectRecipeAdapter extends RecyclerView.Adapter<SelectRecipeAdapte
             singleRecipeLayoutBinding.recipeNameTextview.setText(recipe.getName());
             singleRecipeLayoutBinding.parent.setTag(recipe);
             singleRecipeLayoutBinding.parent.setOnClickListener(this);
-            Step lastStep = recipe.getSteps().get(recipe.getSteps().size() - 1);
-            String url = "";
-            if (!lastStep.getVideoURL().equals("")) {
-                url = lastStep.getVideoURL();
-            } else {
-                url = lastStep.getThumbnailURL();
-            }
+            String imageUrl = recipe.getImage();
             RequestOptions requestOptions = new RequestOptions();
             requestOptions.encodeQuality(10);
             requestOptions.diskCacheStrategy(DiskCacheStrategy.ALL);
             requestOptions.placeholder(R.drawable.ic_image);
             requestOptions.frame(1);
             singleRecipeLayoutBinding.recipeImageView.setImageDrawable(null);
-            Glide.with(context).asBitmap().load(url).apply(requestOptions).into(singleRecipeLayoutBinding.recipeImageView);
+            Glide.with(context).asBitmap().load(imageUrl).apply(requestOptions).into(singleRecipeLayoutBinding.recipeImageView);
             singleRecipeLayoutBinding.servingsTextview.setText(String.valueOf(recipe.getServings()));
         }
 

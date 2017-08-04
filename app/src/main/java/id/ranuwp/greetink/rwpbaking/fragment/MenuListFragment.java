@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,8 @@ import id.ranuwp.greetink.rwpbaking.model.Step;
 
 public class MenuListFragment extends Fragment implements MenuListAdapter.OnItemClickListener {
 
+
+    private static final String LAYOUT_MANAGER_TAG = "layout_manager";
     public interface OnMenuListClickListener {
         void onClick(Step step);
     }
@@ -26,7 +29,7 @@ public class MenuListFragment extends Fragment implements MenuListAdapter.OnItem
     private FragmentMenuListBinding fragmentMenuListBinding;
     private Recipe recipe;
     private MenuListAdapter menuListAdapter;
-    private int selectedPosition = -1;
+    private RecyclerView.LayoutManager layoutManager;
 
     private OnMenuListClickListener onMenuListClickListener;
 
@@ -46,17 +49,16 @@ public class MenuListFragment extends Fragment implements MenuListAdapter.OnItem
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        if(savedInstanceState != null){
-            recipe = savedInstanceState.getParcelable(Recipe.class.getName());
-            selectedPosition = savedInstanceState.getInt("selected");
-        }
         View view = inflater.inflate(R.layout.fragment_menu_list, container, false);
         fragmentMenuListBinding = FragmentMenuListBinding.bind(view);
+        layoutManager = fragmentMenuListBinding.menuListRecyclerview.getLayoutManager();
+        if(savedInstanceState != null){
+            recipe = savedInstanceState.getParcelable(Recipe.class.getName());
+            layoutManager.onRestoreInstanceState(savedInstanceState.getParcelable(LAYOUT_MANAGER_TAG));
+        }
         if(recipe!=null){
             menuListAdapter = new MenuListAdapter(getContext(), recipe, this);
-            menuListAdapter.setSelectedPosition(selectedPosition);
             fragmentMenuListBinding.menuListRecyclerview.setAdapter(menuListAdapter);
-            fragmentMenuListBinding.menuListRecyclerview.smoothScrollToPosition(selectedPosition==-1?0:selectedPosition);
         }
         return fragmentMenuListBinding.getRoot();
     }
@@ -71,7 +73,7 @@ public class MenuListFragment extends Fragment implements MenuListAdapter.OnItem
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(Recipe.class.getName(), recipe);
-        outState.putInt("selected",menuListAdapter.getSelectedPosition());
+        outState.putParcelable(LAYOUT_MANAGER_TAG,layoutManager.onSaveInstanceState());
     }
 
     @Override
@@ -81,10 +83,9 @@ public class MenuListFragment extends Fragment implements MenuListAdapter.OnItem
     }
 
     public void setSelectedItem(Step step){
+        int selectedPosition = -1;
         if(step != null){
             selectedPosition = recipe.getSteps().indexOf(step);
-        }else{
-            selectedPosition = -1;
         }
         menuListAdapter.setSelectedPosition(selectedPosition);
         menuListAdapter.notifyDataSetChanged();

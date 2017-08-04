@@ -3,6 +3,7 @@ package id.ranuwp.greetink.rwpbaking;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -27,19 +28,23 @@ import id.ranuwp.greetink.rwpbaking.model.Recipe;
 
 public class SelectRecipeActivity extends AppCompatActivity implements SelectRecipeAdapter.OnRecipeClickListener {
 
+    private static final String LAYOUT_MANAGER_TAG = "layout_manager";
     private SelectRecipeBinding selectRecipeBinding;
     private SelectRecipeAdapter selectRecipeAdapter;
     private ArrayList<Recipe> recipes;
     private RequestQueue requestQueue;
+    private RecyclerView.LayoutManager layoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         selectRecipeBinding = DataBindingUtil.setContentView(this, R.layout.select_recipe);
         recipes = new ArrayList<>();
+        layoutManager = selectRecipeBinding.recipeRecyclerview.getLayoutManager();
         if(savedInstanceState != null){
             ArrayList<Recipe> temp = savedInstanceState.getParcelableArrayList(Recipe.class.getName());
             recipes.addAll(temp);
+            layoutManager.onRestoreInstanceState(savedInstanceState.getParcelable(LAYOUT_MANAGER_TAG));
         }
         selectRecipeAdapter = new SelectRecipeAdapter(this,recipes);
         selectRecipeAdapter.setOnRecipeClickListener(this);
@@ -54,6 +59,7 @@ public class SelectRecipeActivity extends AppCompatActivity implements SelectRec
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(Recipe.class.getName(),recipes);
+        outState.putParcelable(LAYOUT_MANAGER_TAG,layoutManager.onSaveInstanceState());
     }
 
     private void recipeRequest(){
