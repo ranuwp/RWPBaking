@@ -58,13 +58,15 @@ public class SelectRecipeDetailActivity extends AppCompatActivity implements Men
                             .replace(R.id.detail_step, stepDetailFragment, Step.class.getName())
                             .commit();
                 }else{
-                    StepDetailFragment stepDetailFragment = new StepDetailFragment();
-                    stepDetailFragment.setStep(currentStep, isLastStep(currentStep));
-                    stepDetailFragment.setOnClickListener(this);
-                    fragmentManager.beginTransaction()
-                            .replace(R.id.menu_list, stepDetailFragment, Step.class.getName())
-                            .addToBackStack(null)
-                            .commit();
+                    StepDetailFragment stepDetailFragment = (StepDetailFragment) fragmentManager.findFragmentByTag(Step.class.getName());
+                    if(stepDetailFragment == null){
+                        stepDetailFragment.setStep(currentStep, isLastStep(currentStep));
+                        stepDetailFragment.setOnClickListener(this);
+                        fragmentManager.beginTransaction()
+                                .replace(R.id.menu_list, stepDetailFragment, Step.class.getName())
+                                .addToBackStack(null)
+                                .commit();
+                    }
                 }
             }else{
                 StepDetailFragment stepDetailFragment = (StepDetailFragment) fragmentManager.findFragmentByTag(Step.class.getName());

@@ -6,11 +6,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
+
 import java.util.ArrayList;
 
-import id.ranuwp.greetink.rwpbaking.SelectRecipeDetailActivity;
+import id.ranuwp.greetink.rwpbaking.R;
+import id.ranuwp.greetink.rwpbaking.databinding.SingleRecipeLayoutBinding;
 import id.ranuwp.greetink.rwpbaking.databinding.SingleTextLayoutBinding;
 import id.ranuwp.greetink.rwpbaking.model.Recipe;
+import id.ranuwp.greetink.rwpbaking.model.Step;
 
 /**
  * Created by ranuwp on 7/14/2017.
@@ -20,25 +26,50 @@ public class SelectRecipeAdapter extends RecyclerView.Adapter<SelectRecipeAdapte
 
     private Context context;
     private ArrayList<Recipe> recipes;
+    private OnRecipeClickListener onRecipeClickListener;
 
-    public class SelectRecipeViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public interface OnRecipeClickListener {
+        void onClick(Recipe recipe);
+    }
 
-        private SingleTextLayoutBinding singleTextLayoutBinding;
+    public void setOnRecipeClickListener(OnRecipeClickListener onRecipeClickListener) {
+        this.onRecipeClickListener = onRecipeClickListener;
+    }
 
-        public SelectRecipeViewHolder(SingleTextLayoutBinding singleTextLayoutBinding) {
-            super(singleTextLayoutBinding.getRoot());
-            this.singleTextLayoutBinding = singleTextLayoutBinding;
+    public class SelectRecipeViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+        private SingleRecipeLayoutBinding singleRecipeLayoutBinding;
+
+        public SelectRecipeViewHolder(SingleRecipeLayoutBinding singleRecipeLayoutBinding) {
+            super(singleRecipeLayoutBinding.getRoot());
+            this.singleRecipeLayoutBinding = singleRecipeLayoutBinding;
         }
 
-        public void bind (Recipe recipe){
-            singleTextLayoutBinding.recipeNameTextview.setText(recipe.getName());
-            singleTextLayoutBinding.parent.setTag(recipe);
-            singleTextLayoutBinding.parent.setOnClickListener(this);
+        public void bind(Recipe recipe) {
+            singleRecipeLayoutBinding.recipeNameTextview.setText(recipe.getName());
+            singleRecipeLayoutBinding.parent.setTag(recipe);
+            singleRecipeLayoutBinding.parent.setOnClickListener(this);
+            Step lastStep = recipe.getSteps().get(recipe.getSteps().size() - 1);
+            String url = "";
+            if (!lastStep.getVideoURL().equals("")) {
+                url = lastStep.getVideoURL();
+            } else {
+                url = lastStep.getThumbnailURL();
+            }
+            RequestOptions requestOptions = new RequestOptions();
+            requestOptions.encodeQuality(10);
+            requestOptions.diskCacheStrategy(DiskCacheStrategy.ALL);
+            requestOptions.placeholder(R.drawable.ic_image);
+            requestOptions.frame(1);
+            singleRecipeLayoutBinding.recipeImageView.setImageDrawable(null);
+            Glide.with(context).asBitmap().load(url).apply(requestOptions).into(singleRecipeLayoutBinding.recipeImageView);
+            singleRecipeLayoutBinding.servingsTextview.setText(String.valueOf(recipe.getServings()));
         }
 
         @Override
         public void onClick(View view) {
-            SelectRecipeDetailActivity.toActivity(view.getContext(),(Recipe) view.getTag());
+            if (onRecipeClickListener == null) return;
+            onRecipeClickListener.onClick((Recipe) view.getTag());
         }
     }
 
@@ -49,9 +80,9 @@ public class SelectRecipeAdapter extends RecyclerView.Adapter<SelectRecipeAdapte
 
     @Override
     public SelectRecipeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        SingleTextLayoutBinding singleTextLayoutBinding =
-                SingleTextLayoutBinding.inflate(LayoutInflater.from(context),parent,false);
-        return new SelectRecipeViewHolder(singleTextLayoutBinding);
+        SingleRecipeLayoutBinding singleRecipeLayoutBinding =
+                SingleRecipeLayoutBinding.inflate(LayoutInflater.from(context), parent, false);
+        return new SelectRecipeViewHolder(singleRecipeLayoutBinding);
     }
 
 

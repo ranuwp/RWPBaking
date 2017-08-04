@@ -31,12 +31,16 @@ import com.google.android.exoplayer2.util.Util;
 
 import id.ranuwp.greetink.rwpbaking.R;
 import id.ranuwp.greetink.rwpbaking.databinding.FragmentStepDetailBinding;
+import id.ranuwp.greetink.rwpbaking.databinding.SelectRecipeBinding;
 import id.ranuwp.greetink.rwpbaking.model.Step;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class StepDetailFragment extends Fragment implements View.OnClickListener {
+
+    //TAG
+    private static final String VIDEO_TIME_TAG = "video_time";
 
     private Step step;
     private boolean lastStep;
@@ -63,7 +67,7 @@ public class StepDetailFragment extends Fragment implements View.OnClickListener
     }
 
     public void setStep(Step step, boolean lastStep) {
-        if(step == null) return;
+        if (step == null) return;
         this.step = step;
         this.lastStep = lastStep;
     }
@@ -76,40 +80,58 @@ public class StepDetailFragment extends Fragment implements View.OnClickListener
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        if(savedInstanceState != null){
+        long currentTime = 0;
+        if (savedInstanceState != null) {
             step = savedInstanceState.getParcelable(Step.class.getName());
+            currentTime = savedInstanceState.getLong(VIDEO_TIME_TAG);
         }
         View view = inflater.inflate(R.layout.fragment_step_detail, container, false);
         fragmentStepDetailBinding = FragmentStepDetailBinding.bind(view);
-        if(step != null){
-            fragmentStepDetailBinding.descriptionTextView.setText(step.getDescription());
-            fragmentStepDetailBinding.simpleExoPlayerView.requestFocus();
-            BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-            TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
-            TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
-            player = ExoPlayerFactory.newSimpleInstance(getContext(), trackSelector);
-            fragmentStepDetailBinding.simpleExoPlayerView.setPlayer(player);
-            DefaultBandwidthMeter defaultBandwidthMeter = new DefaultBandwidthMeter();
-            DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(getContext(),
-                    Util.getUserAgent(getContext(),
-                            getContext().getPackageName()),
-                    defaultBandwidthMeter);
-            ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-            MediaSource mediaSource = new ExtractorMediaSource(
-                    Uri.parse(step.getVideoURL()),
-                    dataSourceFactory,
-                    extractorsFactory,
-                    null,
-                    null
-            );
-            player.prepare(mediaSource);
-            if (lastStep) {
-                fragmentStepDetailBinding.nextButton.setVisibility(View.GONE);
-            } else {
-                fragmentStepDetailBinding.nextButton.setOnClickListener(this);
+        if (step != null) {
+            if (fragmentStepDetailBinding.descriptionTextView != null) {
+                fragmentStepDetailBinding.descriptionTextView.setText(step.getDescription());
+                fragmentStepDetailBinding.simpleExoPlayerView.requestFocus();
+                if (lastStep) {
+                    fragmentStepDetailBinding.nextButton.setVisibility(View.GONE);
+                } else {
+                    fragmentStepDetailBinding.nextButton.setOnClickListener(this);
+                }
+            }
+            if(!step.getVideoURL().equals("") || !step.getThumbnailURL().equals("")){
+                BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+                TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
+                TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
+                player = ExoPlayerFactory.newSimpleInstance(getContext(), trackSelector);
+                fragmentStepDetailBinding.simpleExoPlayerView.setPlayer(player);
+                player.seekTo(currentTime);
+                DefaultBandwidthMeter defaultBandwidthMeter = new DefaultBandwidthMeter();
+                DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(getContext(),
+                        Util.getUserAgent(getContext(),
+                                getContext().getPackageName()),
+                        defaultBandwidthMeter);
+                ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+                MediaSource mediaSource = new ExtractorMediaSource(
+                        Uri.parse(step.getVideoURL()),
+                        dataSourceFactory,
+                        extractorsFactory,
+                        null,
+                        null
+                );
+                player.prepare(mediaSource);
+            }else{
+                fragmentStepDetailBinding.simpleExoPlayerView.setVisibility(View.GONE);
             }
         }
         return fragmentStepDetailBinding.getRoot();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(Step.class.getName(),step);
+        if(player != null){
+            outState.putLong(VIDEO_TIME_TAG,player.getCurrentPosition());
+        }
     }
 
     @Override
@@ -119,8 +141,8 @@ public class StepDetailFragment extends Fragment implements View.OnClickListener
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onStop() {
+        super.onStop();
         if (player != null) {
             player.release();
         }

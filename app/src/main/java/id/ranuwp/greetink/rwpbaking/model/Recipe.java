@@ -21,6 +21,10 @@ public class Recipe implements Parcelable {
     private int servings;
     private String image;
 
+    public Recipe(){
+
+    }
+
     public Recipe(JSONObject jsonObject) throws JSONException {
         id = jsonObject.getInt("id");
         name = jsonObject.getString("name");

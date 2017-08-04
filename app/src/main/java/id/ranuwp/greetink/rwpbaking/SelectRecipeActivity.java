@@ -25,7 +25,7 @@ import id.ranuwp.greetink.rwpbaking.databinding.SelectRecipeBinding;
 import id.ranuwp.greetink.rwpbaking.helper.BakingApiHelper;
 import id.ranuwp.greetink.rwpbaking.model.Recipe;
 
-public class SelectRecipeActivity extends AppCompatActivity {
+public class SelectRecipeActivity extends AppCompatActivity implements SelectRecipeAdapter.OnRecipeClickListener {
 
     private SelectRecipeBinding selectRecipeBinding;
     private SelectRecipeAdapter selectRecipeAdapter;
@@ -42,6 +42,7 @@ public class SelectRecipeActivity extends AppCompatActivity {
             recipes.addAll(temp);
         }
         selectRecipeAdapter = new SelectRecipeAdapter(this,recipes);
+        selectRecipeAdapter.setOnRecipeClickListener(this);
         selectRecipeBinding.recipeRecyclerview.setAdapter(selectRecipeAdapter);
         requestQueue = Volley.newRequestQueue(this);
         if(recipes.size() == 0){
@@ -90,4 +91,8 @@ public class SelectRecipeActivity extends AppCompatActivity {
         requestQueue.add(jsonObjectRequest);
     }
 
+    @Override
+    public void onClick(Recipe recipe) {
+        SelectRecipeDetailActivity.toActivity(this,recipe);
+    }
 }

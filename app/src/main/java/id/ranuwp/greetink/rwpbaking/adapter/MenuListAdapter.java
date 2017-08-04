@@ -6,6 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
+
 import java.util.ArrayList;
 
 import id.ranuwp.greetink.rwpbaking.R;
@@ -39,6 +43,7 @@ public class MenuListAdapter extends RecyclerView.Adapter<MenuListAdapter.MenuLi
         }
 
         public void bindIngredients(ArrayList<Ingredient> ingredients){
+            singleTextLayoutBinding.recipeImageView.setImageDrawable(null);
             String text = "Ingredients :";
             for(Ingredient ingredient : ingredients){
                 text += "\n"+ingredient.getIngredient()+" "+ingredient.getQuantity()+" "+ingredient.getMeasure();
@@ -50,6 +55,19 @@ public class MenuListAdapter extends RecyclerView.Adapter<MenuListAdapter.MenuLi
             singleTextLayoutBinding.recipeNameTextview.setText(step.getShortDescription());
             singleTextLayoutBinding.getRoot().setTag(step);
             singleTextLayoutBinding.getRoot().setOnClickListener(this);
+            String url = "";
+            if (!step.getVideoURL().equals("")) {
+                url = step.getVideoURL();
+            } else {
+                url = step.getThumbnailURL();
+            }
+            RequestOptions requestOptions = new RequestOptions();
+            requestOptions.encodeQuality(10);
+            requestOptions.diskCacheStrategy(DiskCacheStrategy.ALL);
+            requestOptions.placeholder(R.drawable.ic_image);
+            requestOptions.frame(1);
+            singleTextLayoutBinding.recipeImageView.setImageDrawable(null);
+            Glide.with(context).asBitmap().load(url).apply(requestOptions).into(singleTextLayoutBinding.recipeImageView);
         }
 
         public void setSelected(boolean isSelected){

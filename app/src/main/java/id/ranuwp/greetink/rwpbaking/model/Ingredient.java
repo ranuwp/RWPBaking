@@ -15,6 +15,10 @@ public class Ingredient implements Parcelable {
     private String measure;
     private String ingredient;
 
+    public Ingredient(){
+
+    }
+
     public Ingredient(JSONObject jsonObject) throws JSONException {
         quantity = jsonObject.getInt("quantity");
         measure = jsonObject.getString("measure");
